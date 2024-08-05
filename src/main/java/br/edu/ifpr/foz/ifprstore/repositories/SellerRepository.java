@@ -41,7 +41,6 @@ public class SellerRepository {
 
                 sellers.add(seller);
 
-
                 /*
                 System.out.println("Id: " + result.getInt("Id"));
                 System.out.println("Name: " + result.getString("Name"));
