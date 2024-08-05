@@ -27,7 +27,6 @@ public class SellerRepository {
         try {
 
             Statement statement = connection.createStatement();
-
             ResultSet result = statement.executeQuery("SELECT * FROM seller");
 
             while (result.next()){
