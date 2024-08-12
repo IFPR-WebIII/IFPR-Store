@@ -2,6 +2,7 @@ package br.edu.ifpr.foz.ifprstore.repositories;
 
 import br.edu.ifpr.foz.ifprstore.connection.ConnectionFactory;
 import br.edu.ifpr.foz.ifprstore.exceptions.DatabaseException;
+import br.edu.ifpr.foz.ifprstore.models.Department;
 import br.edu.ifpr.foz.ifprstore.models.Seller;
 
 import java.sql.*;
@@ -138,6 +139,47 @@ public class SellerRepository {
         } finally {
             ConnectionFactory.closeConnection();
         }
+    }
+
+    public Seller getById(Integer id){
+
+        Seller seller;
+        Department department;
+
+        String sql = "SELECT seller.*,department.Name as DepName " +
+                     "FROM seller " +
+                     "INNER JOIN department " +
+                     "ON seller.DepartmentId = department.Id " +
+                     "WHERE seller.Id = ?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if(resultSet.next()){
+                seller = new Seller();
+                seller.setId(resultSet.getInt("Id"));
+                seller.setName(resultSet.getString("Name"));
+                seller.setBirthDate(resultSet.getDate("BirthDate").toLocalDate());
+                seller.setBaseSalary(resultSet.getDouble("BaseSalary"));
+
+                department = new Department();
+                department.setId(resultSet.getInt("DepartmentId"));
+                department.setName(resultSet.getString("DepName"));
+
+                seller.setDepartment(department);
+
+            }else {
+                throw new DatabaseException("Vendedor não encontrado");
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e.getMessage());
+        }
+
+        return seller;
     }
 
 }

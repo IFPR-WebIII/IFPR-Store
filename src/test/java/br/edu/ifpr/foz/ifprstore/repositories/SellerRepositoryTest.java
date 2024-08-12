@@ -58,4 +58,16 @@ public class SellerRepositoryTest {
 
     }
 
+    @Test
+    public void deveRetornarUmSellerPeloId(){
+
+        SellerRepository repository = new SellerRepository();
+        Seller seller = repository.getById(1);
+
+        System.out.println(seller);
+        System.out.println("Departamento: --------");
+        System.out.println(seller.getDepartment());
+
+    }
+
 }
