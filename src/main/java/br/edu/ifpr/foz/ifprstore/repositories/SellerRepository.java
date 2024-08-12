@@ -1,12 +1,10 @@
 package br.edu.ifpr.foz.ifprstore.repositories;
 
 import br.edu.ifpr.foz.ifprstore.connection.ConnectionFactory;
+import br.edu.ifpr.foz.ifprstore.exceptions.DatabaseException;
 import br.edu.ifpr.foz.ifprstore.models.Seller;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,25 +39,106 @@ public class SellerRepository {
 
                 sellers.add(seller);
 
-                /*
-                System.out.println("Id: " + result.getInt("Id"));
-                System.out.println("Name: " + result.getString("Name"));
-                System.out.println("Email: " + result.getString("Email"));
-                System.out.println("BirthDate: " + result.getDate("BirthDate"));
-                System.out.println("BaseSalary: " + result.getInt("BaseSalary"));
-                */
-
             }
 
             result.close();
 
+
         } catch (SQLException e) {
+
             throw new RuntimeException(e);
+
+        } finally {
+            ConnectionFactory.closeConnection();
         }
 
-        ConnectionFactory.closeConnection();
 
         return sellers;
+    }
+
+    public Seller insert(Seller seller){
+
+        String sql = "INSERT INTO seller (Name, Email, BirthDate, BaseSalary, DepartmentId) " +
+                "VALUES(?, ?, ?, ?, ?)";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            statement.setString(1, seller.getName());
+            statement.setString(2, seller.getEmail());
+            statement.setDate(3, Date.valueOf(seller.getBirthDate()));
+            statement.setDouble(4 ,seller.getBaseSalary());
+            statement.setInt(5, 1);
+
+            Integer rowsInserted = statement.executeUpdate();
+
+            if(rowsInserted > 0){
+
+                ResultSet id = statement.getGeneratedKeys();
+
+                id.next();
+
+                Integer sellerId = id.getInt(1);
+
+                System.out.println("Rows inserted: " + rowsInserted);
+                System.out.println("Id: " + sellerId);
+
+                seller.setId(sellerId);
+
+            }
+
+
+        } catch (Exception e){
+            throw new DatabaseException(e.getMessage());
+        }
+
+        return seller;
+    }
+
+    public void updateSalary(Integer departmentId, Double bonus){
+
+        String sql = "UPDATE seller SET BaseSalary = BaseSalary + ? WHERE DepartmentId = ?";
+
+        try {
+
+            PreparedStatement statement = connection.prepareStatement(sql);//crl+alt+v
+            statement.setDouble(1, bonus);
+            statement.setInt(2, departmentId);
+
+            Integer rowsUpdated = statement.executeUpdate();
+
+            if (rowsUpdated > 0){
+                System.out.println("Rows updated: " + rowsUpdated);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        } finally {
+            ConnectionFactory.closeConnection();
+        }
+
+    }
+
+    public void delete(Integer id){
+
+        String sql = "DELETE FROM seller WHERE Id = ?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            statement.setInt(1, id);
+
+            Integer rowsDeleted = statement.executeUpdate();
+
+            if (rowsDeleted > 0){
+                System.out.println("Rows deleted: " + rowsDeleted);
+            }
+
+        } catch (Exception e) {
+            throw new DatabaseException(e.getMessage());
+        } finally {
+            ConnectionFactory.closeConnection();
+        }
     }
 
 }
