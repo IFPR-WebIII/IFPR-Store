@@ -127,7 +127,6 @@ public class SellerRepository {
             PreparedStatement statement = connection.prepareStatement(sql);
 
             statement.setInt(1, id);
-
             Integer rowsDeleted = statement.executeUpdate();
 
             if (rowsDeleted > 0){
