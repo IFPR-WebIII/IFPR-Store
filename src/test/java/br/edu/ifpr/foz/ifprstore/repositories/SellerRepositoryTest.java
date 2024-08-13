@@ -70,4 +70,15 @@ public class SellerRepositoryTest {
 
     }
 
+    @Test
+    public void deveRetornarUmaListaDeSellersPeloIdDoDepartment() {
+        SellerRepository repository = new SellerRepository();
+        List<Seller> sellersList = repository.findByDepartment(2);
+
+        for (Seller seller: sellersList) {
+            System.out.println(seller);
+            System.out.println("Departamento: --------");
+            System.out.println(seller.getDepartment());
+        }
+    }
 }

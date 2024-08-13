@@ -7,19 +7,21 @@ import br.edu.ifpr.foz.ifprstore.models.Seller;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SellerRepository {
 
     private Connection connection;
 
-    public SellerRepository(){
+    public SellerRepository() {
 
         connection = ConnectionFactory.getConnection();
 
     }
 
-    public List<Seller> getSellers(){
+    public List<Seller> getSellers() {
 
         List<Seller> sellers = new ArrayList<>();
 
@@ -28,15 +30,9 @@ public class SellerRepository {
             Statement statement = connection.createStatement();
             ResultSet result = statement.executeQuery("SELECT * FROM seller");
 
-            while (result.next()){
+            while (result.next()) {
 
-                Seller seller = new Seller();
-
-                seller.setId(result.getInt("Id"));
-                seller.setName(result.getString("Name"));
-                seller.setEmail(result.getString("Email"));
-                seller.setBirthDate(result.getDate("BirthDate").toLocalDate());
-                seller.setBaseSalary(result.getDouble("BaseSalary"));
+                Seller seller = instantiateSeller(result, null);
 
                 sellers.add(seller);
 
@@ -57,7 +53,7 @@ public class SellerRepository {
         return sellers;
     }
 
-    public Seller insert(Seller seller){
+    public Seller insert(Seller seller) {
 
         String sql = "INSERT INTO seller (Name, Email, BirthDate, BaseSalary, DepartmentId) " +
                 "VALUES(?, ?, ?, ?, ?)";
@@ -68,12 +64,12 @@ public class SellerRepository {
             statement.setString(1, seller.getName());
             statement.setString(2, seller.getEmail());
             statement.setDate(3, Date.valueOf(seller.getBirthDate()));
-            statement.setDouble(4 ,seller.getBaseSalary());
+            statement.setDouble(4, seller.getBaseSalary());
             statement.setInt(5, 1);
 
             Integer rowsInserted = statement.executeUpdate();
 
-            if(rowsInserted > 0){
+            if (rowsInserted > 0) {
 
                 ResultSet id = statement.getGeneratedKeys();
 
@@ -89,14 +85,14 @@ public class SellerRepository {
             }
 
 
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DatabaseException(e.getMessage());
         }
 
         return seller;
     }
 
-    public void updateSalary(Integer departmentId, Double bonus){
+    public void updateSalary(Integer departmentId, Double bonus) {
 
         String sql = "UPDATE seller SET BaseSalary = BaseSalary + ? WHERE DepartmentId = ?";
 
@@ -108,7 +104,7 @@ public class SellerRepository {
 
             Integer rowsUpdated = statement.executeUpdate();
 
-            if (rowsUpdated > 0){
+            if (rowsUpdated > 0) {
                 System.out.println("Rows updated: " + rowsUpdated);
             }
 
@@ -120,7 +116,7 @@ public class SellerRepository {
 
     }
 
-    public void delete(Integer id){
+    public void delete(Integer id) {
 
         String sql = "DELETE FROM seller WHERE Id = ?";
 
@@ -130,7 +126,7 @@ public class SellerRepository {
             statement.setInt(1, id);
             Integer rowsDeleted = statement.executeUpdate();
 
-            if (rowsDeleted > 0){
+            if (rowsDeleted > 0) {
                 System.out.println("Rows deleted: " + rowsDeleted);
             }
 
@@ -141,16 +137,16 @@ public class SellerRepository {
         }
     }
 
-    public Seller getById(Integer id){
+    public Seller getById(Integer id) {
 
         Seller seller;
         Department department;
 
         String sql = "SELECT seller.*,department.Name as DepName " +
-                     "FROM seller " +
-                     "INNER JOIN department " +
-                     "ON seller.DepartmentId = department.Id " +
-                     "WHERE seller.Id = ?";
+                "FROM seller " +
+                "INNER JOIN department " +
+                "ON seller.DepartmentId = department.Id " +
+                "WHERE seller.Id = ?";
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -158,20 +154,12 @@ public class SellerRepository {
 
             ResultSet resultSet = statement.executeQuery();
 
-            if(resultSet.next()){
-                seller = new Seller();
-                seller.setId(resultSet.getInt("Id"));
-                seller.setName(resultSet.getString("Name"));
-                seller.setBirthDate(resultSet.getDate("BirthDate").toLocalDate());
-                seller.setBaseSalary(resultSet.getDouble("BaseSalary"));
+            if (resultSet.next()) {
 
-                department = new Department();
-                department.setId(resultSet.getInt("DepartmentId"));
-                department.setName(resultSet.getString("DepName"));
+                department = this.instantiateDepartment(resultSet);
+                seller = this.instantiateSeller(resultSet, department);
 
-                seller.setDepartment(department);
-
-            }else {
+            } else {
                 throw new DatabaseException("Vendedor não encontrado");
             }
 
@@ -180,6 +168,75 @@ public class SellerRepository {
         }
 
         return seller;
+    }
+
+    public List<Seller> findByDepartment(Integer id) {
+
+        List<Seller> sellersList = new ArrayList<>();
+
+        Seller seller;
+        Department department;
+
+        String sql = "SELECT seller.*,department.Name as DepName " +
+                "FROM seller INNER JOIN department " +
+                "ON seller.DepartmentId = department.Id " +
+                "WHERE DepartmentId = ? " +
+                "ORDER BY Name";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            Map<Integer, Department> map = new HashMap<>();
+
+            while (resultSet.next()) {
+
+                department = map.get(resultSet.getInt("DepartmentId"));
+
+                if (department == null) {
+                    department = instantiateDepartment(resultSet);
+                    map.put(resultSet.getInt("DepartmentId"), department);
+                }
+
+                seller = this.instantiateSeller(resultSet, department);
+
+                sellersList.add(seller);
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e.getMessage());
+        } finally {
+            ConnectionFactory.closeConnection();
+        }
+
+        return sellersList;
+
+    }
+
+    public Seller instantiateSeller(ResultSet resultSet, Department department) throws SQLException {
+
+        Seller seller = new Seller();
+
+        seller.setId(resultSet.getInt("Id"));
+        seller.setName(resultSet.getString("Name"));
+        seller.setEmail(resultSet.getString("Email"));
+        seller.setBirthDate(resultSet.getDate("BirthDate").toLocalDate());
+        seller.setBaseSalary(resultSet.getDouble("BaseSalary"));
+        seller.setDepartment(department);
+
+        return seller;
+    }
+
+    public Department instantiateDepartment(ResultSet resultSet) throws SQLException {
+
+        Department department = new Department();
+
+        department.setId(resultSet.getInt("DepartmentId"));
+        department.setName(resultSet.getString("DepName"));
+
+        return department;
     }
 
 }
