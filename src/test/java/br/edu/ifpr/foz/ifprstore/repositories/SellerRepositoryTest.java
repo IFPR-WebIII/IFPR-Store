@@ -80,5 +80,6 @@ public class SellerRepositoryTest {
             System.out.println("Departamento: --------");
             System.out.println(seller.getDepartment());
         }
+
     }
 }
