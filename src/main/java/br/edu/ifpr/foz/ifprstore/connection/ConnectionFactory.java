@@ -17,10 +17,14 @@ public class ConnectionFactory {
         String pass = "bancodedados";
 
         try {
+
+            Class.forName( "com.mysql.cj.jdbc.Driver" );
             connection = DriverManager.getConnection(url, user, pass);
 
         } catch (SQLException e){
             System.out.println(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
 
         return connection;
@@ -28,14 +32,13 @@ public class ConnectionFactory {
 
     public static void  closeConnection(){
 
-        try{
-            connection.close();
-        }catch (SQLException e){
-
-            throw new DatabaseException("Não foi possível encerrar a conexao: " + e.getMessage());
-
-        }
-
+//        try{
+//            connection.close();
+//        }catch (SQLException e){
+//
+//            throw new DatabaseException("Não foi possível encerrar a conexao: " + e.getMessage());
+//
+//        }
 
     }
 

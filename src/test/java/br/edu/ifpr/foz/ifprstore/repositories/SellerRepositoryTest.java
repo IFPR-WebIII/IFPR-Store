@@ -15,14 +15,11 @@ public class SellerRepositoryTest {
 
         SellerRepository repository = new SellerRepository();
 
-
-
         List<Seller> sellers = repository.getSellers();
 
         for (Seller s: sellers) {
             System.out.println(s);
         }
-
     }
 
     @Test
