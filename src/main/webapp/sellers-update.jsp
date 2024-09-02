@@ -1,9 +1,12 @@
 <%@ page import="br.edu.ifpr.foz.ifprstore.models.Seller" %>
 <%@ page import="java.util.List" %>
-<%@ page import="br.edu.ifpr.foz.ifprstore.DateUtils" %>
+<%@ page import="br.edu.ifpr.foz.ifprstore.models.Department" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<% List<Seller> sellers = (List<Seller>) request.getAttribute("sellers"); %>
+<%
+    List<Department> departments = (List<Department>) request.getAttribute("departments");
+    Seller seller = (Seller) request.getAttribute("seller");
+%>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +16,7 @@
     <title>Administração de Vendedores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
 
 </head>
 <body class="bg-light">
@@ -95,47 +98,57 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
 
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Vendedores Cadastrados</h1>
-
-                <a class="btn btn-info" href="<%= request.getContextPath() %>/sellers/create">cadastrar</a>
-
+                <h1 class="h2">Edição de vendedor</h1>
             </div>
 
-            <!-- Tabela de vendedores -->
-            <div class="table-responsive">
-                <table class="table table-striped table-sm">
-                    <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Nascimento</th>
-                        <th>Salário</th>
-                        <th>Departamento</th>
-                        <th>ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+            <form action="<%= request.getContextPath() %>/sellers/update" method="post">
 
-                    <% for (Seller seller : sellers) {%>
-                    <tr>
-                        <td><%= seller.getId() %></td>
-                        <td><%= seller.getName() %></td>
-                        <td><%= seller.getEmail() %></td>
-                        <td><%= DateUtils.brazilianDateFormat(seller.getBirthDate()) %></td>
-                        <td><%= seller.getBaseSalary()%></td>
-                        <td><%= seller.getDepartment() %></td>
-                        <td>
-                            <a href="<%= request.getContextPath() %>/sellers/delete?id=<%= seller.getId() %>" class="btn btn-sm btn-danger">excluir</a>
-                            <a href="<%= request.getContextPath() %>/sellers/update?id=<%= seller.getId() %>" class="btn btn-sm btn-primary">editar</a>
-                        </td>
-                    </tr>
-                    <% } %>
+                <div class="mb-3">
+                    <label for="id" class="form-label">Id: </label>
+                    <input type="text" class="form-control" id="id" name="field_id" value="<%= seller.getId() %>" readonly>
+                </div>
 
-                    <!-- Adicione mais vendedores conforme necessário -->
-                    </tbody>
-                </table>
-            </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nome: </label>
+                    <input type="text" class="form-control" id="name" name="field_name" value="<%= seller.getName() %>">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email: </label>
+                    <input type="email" class="form-control" id="email" name="field_email" placeholder="nome@examplo.com" value="<%= seller.getEmail() %>">
+                </div>
+
+                <div class="mb-3">
+                    <label for="birthDate" class="form-label">Data de nascimento: </label>
+                    <input type="date" class="form-control" id="birthDate" name="field_birthDate" value="<%= seller.getBirthDate() %>">
+                </div>
+
+                <div class="mb-3">
+                    <label for="baseSalary" class="form-label">Salário base: </label>
+                    <input type="text" class="form-control" id="baseSalary" name="field_baseSalary" value="<%= seller.getBaseSalary() %>">
+                </div>
+
+                <div class="mb-3">
+                    <label for="department" class="form-label">Departamento: </label>
+                    <select class="form-select" name="field_department" id="department">
+                        <option selected>Selecione um departamento...</option>
+
+
+                        <% for (Department department: departments) {%>
+
+                            <% String selected = (seller.getDepartment().getId() == department.getId()) ? "selected" : ""; %>
+                            <option <%= selected %> value="<%= department.getId()%>"><%=department.getName() %></option>
+
+                        <% } %>
+
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <button class="btn btn-primary btn-sm px-5" type="submit">atualizar</button>
+                </div>
+
+            </form>
 
         </main>
     </div>
