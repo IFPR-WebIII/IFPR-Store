@@ -1,6 +1,6 @@
 <%@ page import="br.edu.ifpr.foz.ifprstore.models.Seller" %>
 <%@ page import="java.util.List" %>
-<%@ page import="br.edu.ifpr.foz.ifprstore.DateUtils" %>
+<%@ page import="br.edu.ifpr.foz.ifprstore.utils.DateUtils" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <% List<Seller> sellers = (List<Seller>) request.getAttribute("sellers"); %>
@@ -122,9 +122,10 @@
                         <td><%= seller.getId() %></td>
                         <td><%= seller.getName() %></td>
                         <td><%= seller.getEmail() %></td>
-                        <td><%= DateUtils.brazilianDateFormat(seller.getBirthDate()) %></td>
+                        <td><%= DateUtils.localDateToBrazilianFormat(seller.getBirthDate())  %></td>
                         <td><%= seller.getBaseSalary()%></td>
-                        <td><%= seller.getDepartment() %></td>
+                        <td><%= seller.getDepartment().getName() %></td>
+
                         <td>
                             <a href="<%= request.getContextPath() %>/sellers/delete?id=<%= seller.getId() %>" class="btn btn-sm btn-danger">excluir</a>
                             <a href="<%= request.getContextPath() %>/sellers/update?id=<%= seller.getId() %>" class="btn btn-sm btn-primary">editar</a>

@@ -28,14 +28,17 @@ public class SellerRepository {
         try {
 
             Statement statement = connection.createStatement();
-            ResultSet result = statement.executeQuery("SELECT * FROM seller");
+            ResultSet result = statement.executeQuery("SELECT seller.*, department.Name AS DepName " +
+                    "FROM seller " +
+                    "JOIN department " +
+                    "ON seller.DepartmentId = department.Id ");
 
             while (result.next()) {
 
-                Seller seller = instantiateSeller(result, null);
+                Department department = instantiateDepartment(result);
+                Seller seller = instantiateSeller(result, department);
 
                 sellers.add(seller);
-
             }
 
             result.close();
